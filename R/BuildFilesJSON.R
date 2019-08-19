@@ -1,10 +1,10 @@
 #' @title BuildFilesJSON
 #'
-#' 
+#'
 #'
 #' @param conf.setup field a list of Lattes CV XML files
 #'
-#' 
+#'
 #'
 #'
 #'
@@ -95,20 +95,19 @@ return (new.defualt)
 }
 GetXMLLattesCVFilesSelected <-function (ids, configuracao){
 
-setwd(configuracao$gerais$global$diretorio_de_armazenamento_de_cvs)
-files<-list.files()
+files<-list.files(path = configuracao$gerais$global$diretorio_de_armazenamento_de_cvs, full.names = T)
 files<-GetFiles(ids,files)
 return (files)
 
 }
 
-GetFiles<-function(ids, files){
+GetFiles<-function(ids, file_paths){
 
 
    new <- list()
 
-   for (f in files){
-	id<-sub('\\.xml$', '', f)
+   for (f in file_paths){
+	id<-sub('\\.xml$', '', basename(f))
 	for(item in ids){
           if(id==item){
             id<-sub('\\.xml$', '.xml', f)
@@ -117,7 +116,9 @@ GetFiles<-function(ids, files){
         }
    }
    new
- }
+}
+
+
 GetIdsSelected<-function(x){
   tam<-length(x)
   ids<-list()

@@ -54,7 +54,7 @@ ParserXML<-function(files=list()){
 
 
     DADOS_GERAIS<-new.env(parent=emptyenv())
-    DADOS_GERAIS$NUMERO_IDENTIFICADOR<-gsub(".xml", "", file)
+    DADOS_GERAIS$NUMERO_IDENTIFICADOR<-gsub(".xml", "", basename(file))
     DADOS_GERAIS$NOME_COMPLETO <- Validate(data,  'NOME-COMPLETO' )
     DADOS_GERAIS$TEXTO_RESUMO_CV_RH<- Validate(resume, 'TEXTO-RESUMO-CV-RH' )
     DADOS_GERAIS$ENDERECO_PROFISSIONAL<-ENDERECO_PROFISSIONAL
