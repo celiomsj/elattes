@@ -22,13 +22,13 @@ OrientacoesDestaPessoa<-function(id,orientacoesPorAno){
 	orientacao_em_andamento_iniciacao_cientifica <- list()
 	orientacao_em_andamento_tcc <- list()
 
-	producao<-hash()
+	producao<-hash::hash()
 
-	tipos<-keys(orientacoesPorAno) 
+	tipos<-hash::keys(orientacoesPorAno) 
 
 
 	for (tipo in tipos){
-		anos<-keys(orientacoesPorAno[[tipo]]) 
+		anos<-hash::keys(orientacoesPorAno[[tipo]]) 
 	  	for(ano in anos){
 			for(item in orientacoesPorAno[[tipo]][[ano]]){
 				for (num in item$authorsEndogenous){
@@ -65,14 +65,14 @@ OrientacoesDestaPessoa<-function(id,orientacoesPorAno){
 
 	}
 	
- .set(producao, 'ORIENTACAO_CONCLUIDA_MESTRADO', orientacao_concluida_mestrado)
- .set(producao, 'ORIENTACAO_CONCLUIDA_DOUTORADO', orientacao_concluida_doutorado)
- .set(producao, 'OUTRAS_ORIENTACOES_CONCLUIDAS', outras_orientacoes_concluidas)
-.set(producao, 'ORIENTACAO_CONCLUIDA_POS_DOUTORADO', orientacao_concluida_pos_doutorado)
-.set(producao, 'ORIENTACAO_EM_ANDAMENTO_MESTRADO', orientacao_em_andamento_mestrado)
-.set(producao, 'ORIENTACAO_EM_ANDAMENTO_DOUTORADO', orientacao_em_andamento_doutorado)
-.set(producao, 'ORIENTACAO_EM_ANDAMENTO_INICIACAO_CIENTIFICA', orientacao_em_andamento_iniciacao_cientifica)
-.set(producao, 'ORIENTACAO_EM_ANDAMENTO_GRADUACAO', orientacao_em_andamento_tcc)
+ hash::.set(producao, 'ORIENTACAO_CONCLUIDA_MESTRADO', orientacao_concluida_mestrado)
+ hash::.set(producao, 'ORIENTACAO_CONCLUIDA_DOUTORADO', orientacao_concluida_doutorado)
+ hash::.set(producao, 'OUTRAS_ORIENTACOES_CONCLUIDAS', outras_orientacoes_concluidas)
+hash::.set(producao, 'ORIENTACAO_CONCLUIDA_POS_DOUTORADO', orientacao_concluida_pos_doutorado)
+hash::.set(producao, 'ORIENTACAO_EM_ANDAMENTO_MESTRADO', orientacao_em_andamento_mestrado)
+hash::.set(producao, 'ORIENTACAO_EM_ANDAMENTO_DOUTORADO', orientacao_em_andamento_doutorado)
+hash::.set(producao, 'ORIENTACAO_EM_ANDAMENTO_INICIACAO_CIENTIFICA', orientacao_em_andamento_iniciacao_cientifica)
+hash::.set(producao, 'ORIENTACAO_EM_ANDAMENTO_GRADUACAO', orientacao_em_andamento_tcc)
 
 	producao
 

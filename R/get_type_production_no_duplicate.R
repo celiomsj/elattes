@@ -57,10 +57,10 @@ GetTypeProductionNoDuplicate <- function(publicacoesPorAno, levenshtein, tipo, t
 
 RemoveDuplicate<-function( listaPorAno, levenshtein, deQualtipo, tipoDaProducao){
  
-	 anos<-keys(listaPorAno)
+	 anos<-hash::keys(listaPorAno)
 	
 	
-	publicacoesPorAnoSemDuplicatas <- hash()
+	publicacoesPorAnoSemDuplicatas <- hash::hash()
 	
 
 
@@ -101,12 +101,12 @@ RemoveDuplicate<-function( listaPorAno, levenshtein, deQualtipo, tipoDaProducao)
 		  #adiciona a última publicação a lista de publicações sem repetição
 		  aux <- c(publications.no.repetion,list(publications[[i]]))
 		  publications.no.repetion <-  BuildObject(publications, aux, levenshtein, deQualtipo)
-		  .set(publicacoesPorAnoSemDuplicatas, ano, publications.no.repetion)
+		  hash::.set(publicacoesPorAnoSemDuplicatas, ano, publications.no.repetion)
 	    }else if (length(publications)==1 || length(publications)==0 ){
 		  
                   aux <- publications
 		  publications.no.repetion <-  BuildObject(publications, aux, levenshtein, deQualtipo)
-		  .set(publicacoesPorAnoSemDuplicatas, ano, publications.no.repetion)
+		  hash::.set(publicacoesPorAnoSemDuplicatas, ano, publications.no.repetion)
 
                   }
 	 }
@@ -127,23 +127,23 @@ IsSimilar<-function(publicacaoA, publicacaoB, levenshtein, tipo){
 	result<-TRUE
 
 	if (tipo == "PERIODICO"){
-		result <- stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO), toupper(publicacaoB$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO),method='lv') < levenshtein 
+		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO), toupper(publicacaoB$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO),method='lv') < levenshtein 
 
 	}else if(tipo =="ARTIGO_ACEITO") {
-		result <- stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO), toupper(publicacaoB$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO),method='lv') < levenshtein 
+		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO), toupper(publicacaoB$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO),method='lv') < levenshtein 
 
 	}else if(tipo == "EVENTO"){
-		result <- stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_TRABALHO$TITULO_DO_TRABALHO), toupper(publicacaoB$DADOS_BASICOS_DO_TRABALHO$TITULO_DO_TRABALHO),method='lv') < levenshtein 
+		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_TRABALHO$TITULO_DO_TRABALHO), toupper(publicacaoB$DADOS_BASICOS_DO_TRABALHO$TITULO_DO_TRABALHO),method='lv') < levenshtein 
 
 	}else if(tipo == "LIVRO"){
-		result <- stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_LIVRO$TITULO_DO_LIVRO), toupper(publicacaoB$DADOS_BASICOS_DO_LIVRO$TITULO_DO_LIVRO),method='lv') < levenshtein 
+		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_LIVRO$TITULO_DO_LIVRO), toupper(publicacaoB$DADOS_BASICOS_DO_LIVRO$TITULO_DO_LIVRO),method='lv') < levenshtein 
 	} else if(tipo == "DEMAIS_TIPOS_DE_PRODUCAO_BIBLIOGRAFICA"){
-		result <- stringdist(toupper(publicacaoA$DADOS_BASICOS_DE_OUTRA_PRODUCAO$TITULO), toupper(publicacaoB$DADOS_BASICOS_DE_OUTRA_PRODUCAO$TITULO),method='lv') < levenshtein 
+		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DE_OUTRA_PRODUCAO$TITULO), toupper(publicacaoB$DADOS_BASICOS_DE_OUTRA_PRODUCAO$TITULO),method='lv') < levenshtein 
 	} else if(tipo == "CAPITULO_DE_LIVRO"){
-		result <- stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_CAPITULO$TITULO_DO_CAPITULO_DO_LIVRO), toupper(publicacaoB$DADOS_BASICOS_DO_CAPITULO$TITULO_DO_CAPITULO_DO_LIVRO),method='lv') < levenshtein 
+		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_CAPITULO$TITULO_DO_CAPITULO_DO_LIVRO), toupper(publicacaoB$DADOS_BASICOS_DO_CAPITULO$TITULO_DO_CAPITULO_DO_LIVRO),method='lv') < levenshtein 
 
 	}else if (tipo == "TEXTO_EM_JORNAIS"){
-		result <- stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_TEXTO$TITULO_DO_TEXTO), toupper(publicacaoB$DADOS_BASICOS_DO_TEXTO$TITULO_DO_TEXTO),method='lv') < levenshtein 
+		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_TEXTO$TITULO_DO_TEXTO), toupper(publicacaoB$DADOS_BASICOS_DO_TEXTO$TITULO_DO_TEXTO),method='lv') < levenshtein 
 	}else if(tipo == "ORIENTACAO_CONCLUIDA_MESTRADO" ||
                  tipo == "ORIENTACAO_CONCLUIDA_DOUTORADO" || 
                  tipo == "OUTRAS_ORIENTACOES_CONCLUIDAS" ||
@@ -154,7 +154,7 @@ IsSimilar<-function(publicacaoA, publicacaoB, levenshtein, tipo){
 
 		tryCatch(
 
-			if(stringdist(toupper(publicacaoA$DETALHAMENTO$NOME_DO_ORIENTADO), toupper(publicacaoB$DETALHAMENTO$NOME_DO_ORIENTADO), method='lv') < levenshtein && codigoCursoA==codigoCursoB) {	  
+			if(stringdist::stringdist(toupper(publicacaoA$DETALHAMENTO$NOME_DO_ORIENTADO), toupper(publicacaoB$DETALHAMENTO$NOME_DO_ORIENTADO), method='lv') < levenshtein && codigoCursoA==codigoCursoB) {	  
 			   result <- TRUE
 
 		      }else {result <- FALSE}
@@ -178,7 +178,7 @@ IsSimilar<-function(publicacaoA, publicacaoB, levenshtein, tipo){
 
 		 tryCatch(
 
-			if(stringdist(toupper(publicacaoA$DETALHAMENTO$NOME_DO_ORIENTADO), toupper(publicacaoB$DETALHAMENTO$NOME_DO_ORIENTADO),method='lv') < levenshtein && codigoCursoA==codigoCursoB) {
+			if(stringdist::stringdist(toupper(publicacaoA$DETALHAMENTO$NOME_DO_ORIENTADO), toupper(publicacaoB$DETALHAMENTO$NOME_DO_ORIENTADO),method='lv') < levenshtein && codigoCursoA==codigoCursoB) {
 			   result <- TRUE
 			}else {
 			   result <- FALSE

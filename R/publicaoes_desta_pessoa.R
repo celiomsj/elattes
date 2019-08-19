@@ -20,13 +20,13 @@ PublicaoesDestaPessoa<-function(id,publicacoesPorAno){
 	texto<-list()
 	outro<-list()
  
-	producao<-hash()
+	producao<-hash::hash()
 
-	tipos<-keys(publicacoesPorAno) 
+	tipos<-hash::keys(publicacoesPorAno) 
 #p[['incluir_artigo_em_periodico']]
 
 	for (tipo in tipos){
-		anos<-keys(publicacoesPorAno[[tipo]]) 
+		anos<-hash::keys(publicacoesPorAno[[tipo]]) 
 	  	for(ano in anos){
 			for(item in publicacoesPorAno[[tipo]][[ano]]){
 				for (num in item$authorsEndogenous){
@@ -56,13 +56,13 @@ PublicaoesDestaPessoa<-function(id,publicacoesPorAno){
 
 	}
 	
-	.set(producao, 'CAPITULO_DE_LIVRO', capitulo)
-	.set(producao, 'LIVRO', livro)
-	.set(producao, 'EVENTO', evento)
-	.set(producao, 'PERIODICO', periodico)
-	.set(producao, 'ARTIGO_ACEITO', aceito)
-	.set(producao, 'TEXTO_EM_JORNAIS', texto)
-	.set(producao, 'DEMAIS_TIPOS_DE_PRODUCAO_BIBLIOGRAFICA', outro)
+	hash::.set(producao, 'CAPITULO_DE_LIVRO', capitulo)
+	hash::.set(producao, 'LIVRO', livro)
+	hash::.set(producao, 'EVENTO', evento)
+	hash::.set(producao, 'PERIODICO', periodico)
+	hash::.set(producao, 'ARTIGO_ACEITO', aceito)
+	hash::.set(producao, 'TEXTO_EM_JORNAIS', texto)
+	hash::.set(producao, 'DEMAIS_TIPOS_DE_PRODUCAO_BIBLIOGRAFICA', outro)
 
 	
 

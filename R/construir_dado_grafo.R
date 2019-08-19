@@ -16,9 +16,9 @@ ConstruirDadoGrafo <- function(dadosBasicos, publicacoesPorAno, configuracao, de
  
 
   
-	ids<-keys(dadosBasicos)
+	ids<-hash::keys(dadosBasicos)
 
-	coautores <-hash()
+	coautores <-hash::hash()
 	i<-1
 	for(id in ids){
 		#primeira parte
@@ -31,7 +31,7 @@ ConstruirDadoGrafo <- function(dadosBasicos, publicacoesPorAno, configuracao, de
 		dadoscoautores<-GetDadosCoautores(publicacoes, id, configuracao, default)
 	
 		
-		.set(coautores, id , dadoscoautores)
+		hash::.set(coautores, id , dadoscoautores)
 		i<-i+1
 		
 	
@@ -100,16 +100,16 @@ ParteDoisGrafo<-function(id, id1, numeroDePublicacoes){
 }
 
 GetDadosCoautores <- function(publicacoes, id, configuracao, default){
-	dados <- hash()
+	dados <- hash::hash()
 
-	temp <- hash()
-	.set(temp, "incluir_artigo_em_periodico","PERIODICO")
-	.set(temp, "incluir_livro_publicado","LIVRO")
-	.set(temp, "incluir_capitulo_de_livro_publicado" ,"CAPITULO_DE_LIVRO")
-	.set(temp, "incluir_trabalho_em_congresso" ,"EVENTO")
-	.set(temp, "incluir_texto_em_jornal_de_noticia" ,"TEXTO_EM_JORNAIS")
-	.set(temp, "incluir_outro_tipo_de_producao_bibliografica" ,"DEMAIS_TIPOS_DE_PRODUCAO_BIBLIOGRAFICA")
-	.set(temp, "incluir_artigo_aceito_para_publicacao" ,"ARTIGO_ACEITO")
+	temp <- hash::hash()
+	hash::.set(temp, "incluir_artigo_em_periodico","PERIODICO")
+	hash::.set(temp, "incluir_livro_publicado","LIVRO")
+	hash::.set(temp, "incluir_capitulo_de_livro_publicado" ,"CAPITULO_DE_LIVRO")
+	hash::.set(temp, "incluir_trabalho_em_congresso" ,"EVENTO")
+	hash::.set(temp, "incluir_texto_em_jornal_de_noticia" ,"TEXTO_EM_JORNAIS")
+	hash::.set(temp, "incluir_outro_tipo_de_producao_bibliografica" ,"DEMAIS_TIPOS_DE_PRODUCAO_BIBLIOGRAFICA")
+	hash::.set(temp, "incluir_artigo_aceito_para_publicacao" ,"ARTIGO_ACEITO")
 
 	
 	tipos<-names(configuracao$gerais$grafo_de_coautoria)
@@ -138,7 +138,7 @@ for(tipo in tipos){
 			if(id != idCoautor){
 
 			   qtd<-GetQtdPubCoautoradas(publicacoes, idCoautor, tipos)
-                          .set(dados,idCoautor, qtd)
+                          hash::.set(dados,idCoautor, qtd)
 				   
 				
 			}
@@ -173,7 +173,7 @@ cont
 EliminarLinksDuplicados <- function(ids,  coautores){
 
 
-tabela<-hash()
+tabela<-hash::hash()
 
 for(id in ids){
 	aux<-list()
@@ -186,7 +186,7 @@ for(id in ids){
 		
 	}
 	if(length(aux)>0){
-	.set(tabela, id, aux)
+	hash::.set(tabela, id, aux)
 	}
 	
 }

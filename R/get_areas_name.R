@@ -22,17 +22,17 @@ for(id in ids.researcher){
 }
 
 
-out.areas<-hash()
+out.areas<-hash::hash()
 
 
 for(name in names.area ){
  if(name!=""){
-  .set(out.areas, name, name)
+  hash::.set(out.areas, name, name)
  }
       
 }
 
-names.area<-keys(out.areas)
+names.area<-hash::keys(out.areas)
 
 return(names.area)
 }

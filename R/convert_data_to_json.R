@@ -144,7 +144,7 @@ return (s)
  
   s <- paste("{", sep = " ")
   
-  anos<-keys(publicacoesPorAno) 
+  anos<-hash::keys(publicacoesPorAno) 
 
   for(ano in anos){
           s <- paste(s, sep="\"", ano)

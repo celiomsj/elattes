@@ -15,7 +15,7 @@ ConvertDataProfileToJson <- function(dadoBasico, publicacoesPorAno, orientacoesP
   s <- paste("{", sep=" ", " ")
  
 
-  ids<-keys(dadoBasico) 
+  ids<-hash::keys(dadoBasico) 
   for(id in ids){
 	  senioridade<-CalcularSenioridade(dadoBasico,id)
 	  p<-PublicaoesDestaPessoa(id,publicacoesPorAno)

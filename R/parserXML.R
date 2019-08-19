@@ -9,6 +9,7 @@
 #'
 #'
 #' @export ParserXML
+#' @import XML
 
 
 
@@ -18,7 +19,7 @@ ParserXML<-function(files=list()){
 
 
 
-  out.table <- hash()
+  out.table <- hash::hash()
 
   # This loop extracts for each researcher its academic production  from its Lattes CV XML file
   for (file in files) {
@@ -115,7 +116,7 @@ ParserXML<-function(files=list()){
 
 
 
-    .set(out.table , AUTOR_DO_CURRICULO$DADOS_GERAIS$NUMERO_IDENTIFICADOR, AUTOR_DO_CURRICULO)
+    hash::.set(out.table , AUTOR_DO_CURRICULO$DADOS_GERAIS$NUMERO_IDENTIFICADOR, AUTOR_DO_CURRICULO)
 
   }
 

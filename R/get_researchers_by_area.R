@@ -9,9 +9,9 @@
 
 GetResearchersByArea <- function(ids.researcher, production.by.researcher){
 
-out.researchers.by.area<-hash()
+out.researchers.by.area<-hash::hash()
 
-temp<-hash()
+temp<-hash::hash()
 
 names<-GetAreasName(ids.researcher, production.by.researcher)
 
@@ -29,20 +29,20 @@ for (name in names){
      
    
    }
-   .set(out.researchers.by.area, name, aux)
+   hash::.set(out.researchers.by.area, name, aux)
    
 }
 
 
 
-aux3<-hash()
+aux3<-hash::hash()
 for(name in names ){
-  aux2<-hash()
+  aux2<-hash::hash()
   for(id in  out.researchers.by.area[[name]]){
-     .set(aux2, id, id)
+     hash::.set(aux2, id, id)
   }
 
-  .set(aux3, name, keys(aux2) )
+  hash::.set(aux3, name, hash::keys(aux2) )
       
 }
 

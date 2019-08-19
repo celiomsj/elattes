@@ -13,7 +13,7 @@ PartOneJsonPerfil<-function(publicacoes){
 
 
 	s<-""
-	tipos<-keys(publicacoes)
+	tipos<-hash::keys(publicacoes)
 
 	  s <- paste("{", sep = "")
 

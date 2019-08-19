@@ -410,7 +410,7 @@ AddIdToPapers <- function(ids, h, tipo) {
 }
 
 GetPeriod <-function( x ){
-  h2 <- hash()
+  h2 <- hash::hash()
 
   tam<-length(x)
 
@@ -425,7 +425,7 @@ GetPeriod <-function( x ){
          employee$finalDate<-u$periodo[[j]]
        }
     }
-     .set(h2,u$id, employee)
+     hash::.set(h2,u$id, employee)
    }
  }
 h2

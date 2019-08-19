@@ -17,7 +17,7 @@ SeparateByYear <- function (ids, h, parametros, tipo, tipoDaProducao ) {
         year2 <- parametros$gerais$global$itens_ate_o_ano
 
 	years <- list()
-	h3 <- hash()
+	h3 <- hash::hash()
 
 	for (year in year1:year2) {
 
@@ -30,7 +30,7 @@ SeparateByYear <- function (ids, h, parametros, tipo, tipoDaProducao ) {
 		}else if (tipoDaProducao=='ORIENTACAO'){
 			producao$orientacoes<-list()
 		}
-		  .set(h3,year,producao)
+		  hash::.set(h3,year,producao)
 	}
 	  
 
