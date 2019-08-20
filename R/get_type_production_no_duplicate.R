@@ -1,6 +1,6 @@
 #' @title GetTypeProductionNoDuplicate
 #'
-#' 
+#'
 #'
 #' @param publicacoesPorAno a list of Lattes CV XML files.
 #' @param levenshtein field a list of Lattes CV XML files.
@@ -11,10 +11,10 @@
 #' @export GetTypeProductionNoDuplicate
 
 GetTypeProductionNoDuplicate <- function(publicacoesPorAno, levenshtein, tipo, tipoDaProducao) {
- 
+
 	result <- NULL
 
-	
+
 
 	if (tipo == 'PERIODICO') {
  		result<-RemoveDuplicate(publicacoesPorAno,levenshtein,tipo, tipoDaProducao)
@@ -31,7 +31,7 @@ GetTypeProductionNoDuplicate <- function(publicacoesPorAno, levenshtein, tipo, t
 	} else if(tipo == 'DEMAIS_TIPOS_DE_PRODUCAO_BIBLIOGRAFICA'){
 		result<-RemoveDuplicate(publicacoesPorAno,levenshtein,tipo, tipoDaProducao)
 	} else if(tipo == 'ORIENTACAO_CONCLUIDA_MESTRADO'){
-		result<-RemoveDuplicate(publicacoesPorAno,levenshtein,tipo, tipoDaProducao) 
+		result<-RemoveDuplicate(publicacoesPorAno,levenshtein,tipo, tipoDaProducao)
 	} else if(tipo == 'ORIENTACAO_EM_ANDAMENTO_MESTRADO'){
 		result<-RemoveDuplicate(publicacoesPorAno,levenshtein,tipo, tipoDaProducao)
 	}  else if(tipo == 'ORIENTACAO_EM_ANDAMENTO_INICIACAO_CIENTIFICA'){
@@ -56,165 +56,104 @@ GetTypeProductionNoDuplicate <- function(publicacoesPorAno, levenshtein, tipo, t
 
 
 RemoveDuplicate<-function( listaPorAno, levenshtein, deQualtipo, tipoDaProducao){
- 
-	 anos<-hash::keys(listaPorAno)
-	
-	
+
+  anos<-hash::keys(listaPorAno)
+
 	publicacoesPorAnoSemDuplicatas <- hash::hash()
-	
+
+  for (ano in anos){
+    publications <- if (tipoDaProducao == 'BIBLIOGRAFICA') {
+      listaPorAno[[ano]]$publications
+    } else {
+      listaPorAno[[ano]]$orientacoes
+    }
+
+    pubs_idlattes <- lapply(publications, function(x) x[['IDLATTES']])
+    pubs_titles <- lapply(publications, get_title_or_advisee, type = deQualtipo)
+
+    pubs_deduped <- list()
+
+    for (i in seq_along(publications)) {
+
+      same_idlattes <- pubs_idlattes[[i]] == pubs_idlattes[-(1:i)]
+
+      if (deQualtipo == "ORIENTACAO_CONCLUIDA_MESTRADO" ||
+          deQualtipo == "ORIENTACAO_CONCLUIDA_DOUTORADO" ||
+          deQualtipo == "OUTRAS_ORIENTACOES_CONCLUIDAS" ||
+          deQualtipo == "ORIENTACAO_CONCLUIDA_POS_DOUTORADO" ||
+          deQualtipo == 'ORIENTACAO_EM_ANDAMENTO_MESTRADO'||
+          deQualtipo == 'ORIENTACAO_EM_ANDAMENTO_DOUTORADO'||
+          deQualtipo == 'ORIENTACAO_EM_ANDAMENTO_DE_POS_DOUTORADO'||
+          deQualtipo == 'ORIENTACAO_EM_ANDAMENTO_INICIACAO_CIENTIFICA'||
+          deQualtipo == 'ORIENTACAO_EM_ANDAMENTO_GRADUACAO'||
+          deQualtipo == 'ORIENTACAO_EM_ANDAMENTO_ESPECIALIZACAO') {
+
+        codigos_cursos <- lapply(publications[-(1:i)], function(x) x[['DETALHAMENTO']][['CODIGO_CURSO']])
+
+        similar <- !same_idlattes &
+          (publications[[i]][['DETALHAMENTO']][['CODIGO_CURSO']] == codigos_cursos) &
+          (stringdist::stringdist(toupper(pubs_titles[[i]]), toupper(pubs_titles[-(1:i)]), method = 'lv') < levenshtein)
+      } else {
+        similar <- !same_idlattes &
+          (stringdist::stringdist(toupper(pubs_titles[[i]]), toupper(pubs_titles[-(1:i)]), method = 'lv') < levenshtein)
+
+      }
 
 
-	 for (ano in anos){
-	   
-	    publications.no.repetion <- list()
-	
-	    if(tipoDaProducao=='BIBLIOGRAFICA'){
-		 publications <- listaPorAno[[ano]]$publications
-	    }else if (tipoDaProducao=='ORIENTACAO'){
-		 publications <- listaPorAno[[ano]]$orientacoes
-	    }
-	 
+      if (!any(similar)) {
+        pubs_deduped <- c(pubs_deduped, list(publications[[i]]))
+      }
+    }
 
-	  i=1
-	  
-	  if(length(publications)>1){ 
+    pubs_deduped_obj <- BuildObject(publications, pubs_deduped, levenshtein, deQualtipo)
+    hash::.set(publicacoesPorAnoSemDuplicatas, ano, pubs_deduped_obj)
 
-		  for (pubi in publications[i:(length(publications)-1)]) {
-		    
-		    Ai <- pubi$IDLATTES 
-		    isNotSimilar <- TRUE
-		    j=i+1
-		    for (pubj in publications[j:length(publications)]) {
-		      Aj <- pubj$IDLATTES
-		      if (!identical(Aj, Ai) && IsSimilar(pubj,pubi,levenshtein, deQualtipo) ){
-			isNotSimilar<-FALSE
-		      }
-		    }
-		    
-		    if(isNotSimilar){
-		      publications.no.repetion<-c(publications.no.repetion,list(pubi)) 
-		    }
-		    i=i+1
-		    
-		  }
-		  
-		  #adiciona a última publicação a lista de publicações sem repetição
-		  aux <- c(publications.no.repetion,list(publications[[i]]))
-		  publications.no.repetion <-  BuildObject(publications, aux, levenshtein, deQualtipo)
-		  hash::.set(publicacoesPorAnoSemDuplicatas, ano, publications.no.repetion)
-	    }else if (length(publications)==1 || length(publications)==0 ){
-		  
-                  aux <- publications
-		  publications.no.repetion <-  BuildObject(publications, aux, levenshtein, deQualtipo)
-		  hash::.set(publicacoesPorAnoSemDuplicatas, ano, publications.no.repetion)
+  }
 
-                  }
-	 }
-	 
-
-          publicacoesPorAnoSemDuplicatas
-
+	publicacoesPorAnoSemDuplicatas
 }
 
 
-
-
-
-
-
-IsSimilar<-function(publicacaoA, publicacaoB, levenshtein, tipo){
-
-	result<-TRUE
-
-	if (tipo == "PERIODICO"){
-		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO), toupper(publicacaoB$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO),method='lv') < levenshtein 
-
-	}else if(tipo =="ARTIGO_ACEITO") {
-		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO), toupper(publicacaoB$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO),method='lv') < levenshtein 
-
-	}else if(tipo == "EVENTO"){
-		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_TRABALHO$TITULO_DO_TRABALHO), toupper(publicacaoB$DADOS_BASICOS_DO_TRABALHO$TITULO_DO_TRABALHO),method='lv') < levenshtein 
-
-	}else if(tipo == "LIVRO"){
-		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_LIVRO$TITULO_DO_LIVRO), toupper(publicacaoB$DADOS_BASICOS_DO_LIVRO$TITULO_DO_LIVRO),method='lv') < levenshtein 
-	} else if(tipo == "DEMAIS_TIPOS_DE_PRODUCAO_BIBLIOGRAFICA"){
-		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DE_OUTRA_PRODUCAO$TITULO), toupper(publicacaoB$DADOS_BASICOS_DE_OUTRA_PRODUCAO$TITULO),method='lv') < levenshtein 
-	} else if(tipo == "CAPITULO_DE_LIVRO"){
-		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_CAPITULO$TITULO_DO_CAPITULO_DO_LIVRO), toupper(publicacaoB$DADOS_BASICOS_DO_CAPITULO$TITULO_DO_CAPITULO_DO_LIVRO),method='lv') < levenshtein 
-
-	}else if (tipo == "TEXTO_EM_JORNAIS"){
-		result <- stringdist::stringdist(toupper(publicacaoA$DADOS_BASICOS_DO_TEXTO$TITULO_DO_TEXTO), toupper(publicacaoB$DADOS_BASICOS_DO_TEXTO$TITULO_DO_TEXTO),method='lv') < levenshtein 
-	}else if(tipo == "ORIENTACAO_CONCLUIDA_MESTRADO" ||
-                 tipo == "ORIENTACAO_CONCLUIDA_DOUTORADO" || 
-                 tipo == "OUTRAS_ORIENTACOES_CONCLUIDAS" ||
-		 tipo == "ORIENTACAO_CONCLUIDA_POS_DOUTORADO" ){
-	    	 
-		codigoCursoA<- publicacaoA$DETALHAMENTO$CODIGO_CURSO
-		codigoCursoB<-publicacaoB$DETALHAMENTO$CODIGO_CURSO
-
-		tryCatch(
-
-			if(stringdist::stringdist(toupper(publicacaoA$DETALHAMENTO$NOME_DO_ORIENTADO), toupper(publicacaoB$DETALHAMENTO$NOME_DO_ORIENTADO), method='lv') < levenshtein && codigoCursoA==codigoCursoB) {	  
-			   result <- TRUE
-
-		      }else {result <- FALSE}
-
-		 ,
-
-		 error = function(e) {
-	
-		}  )
-		
-	} else if(tipo == 'ORIENTACAO_EM_ANDAMENTO_MESTRADO'||
-	         tipo == 'ORIENTACAO_EM_ANDAMENTO_DOUTORADO'||
-	         tipo == 'ORIENTACAO_EM_ANDAMENTO_DE_POS_DOUTORADO'||
-	         tipo == 'ORIENTACAO_EM_ANDAMENTO_INICIACAO_CIENTIFICA'||
-	         tipo == 'ORIENTACAO_EM_ANDAMENTO_GRADUACAO'||
-	         tipo == 'ORIENTACAO_EM_ANDAMENTO_ESPECIALIZACAO' ){
-	 
-	
-		codigoCursoA<- publicacaoA$DETALHAMENTO$CODIGO_CURSO
-		codigoCursoB<-publicacaoB$DETALHAMENTO$CODIGO_CURSO
-
-		 tryCatch(
-
-			if(stringdist::stringdist(toupper(publicacaoA$DETALHAMENTO$NOME_DO_ORIENTADO), toupper(publicacaoB$DETALHAMENTO$NOME_DO_ORIENTADO),method='lv') < levenshtein && codigoCursoA==codigoCursoB) {
-			   result <- TRUE
-			}else {
-			   result <- FALSE
-			}
-
-			,
-
-			error = function(e) {
-	
-			}  )
-		
-	    	  	
-		
-	}
-
-        result
-
+get_title_or_advisee <- function(publication, type) {
+  switch(type,
+         'PERIODICO' = publication$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO,
+         'ARTIGO_ACEITO' = publication$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO,
+         'EVENTO' = publication$DADOS_BASICOS_DO_TRABALHO$TITULO_DO_TRABALHO,
+         'LIVRO' = publication$DADOS_BASICOS_DO_LIVRO$TITULO_DO_LIVRO,
+         'DEMAIS_TIPOS_DE_PRODUCAO_BIBLIOGRAFICA' = publication$DADOS_BASICOS_DE_OUTRA_PRODUCAO$TITULO,
+         'CAPITULO_DE_LIVRO' = publication$DADOS_BASICOS_DO_CAPITULO$TITULO_DO_CAPITULO_DO_LIVRO,
+         'TEXTO_EM_JORNAIS' = publication$DADOS_BASICOS_DO_TEXTO$TITULO_DO_TEXTO,
+         'ORIENTACAO_CONCLUIDA' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'ORIENTACAO_CONCLUIDA_MESTRADO' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'ORIENTACAO_CONCLUIDA_DOUTORADO' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'OUTRAS_ORIENTACOES_CONCLUIDAS' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'ORIENTACAO_CONCLUIDA_POS_DOUTORADO' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'ORIENTACAO_EM_ANDAMENTO_MESTRADO' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'ORIENTACAO_EM_ANDAMENTO_DOUTORADO' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'ORIENTACAO_EM_ANDAMENTO_DE_POS_DOUTORADO' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'ORIENTACAO_EM_ANDAMENTO_INICIACAO_CIENTIFICA' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'ORIENTACAO_EM_ANDAMENTO_GRADUACAO' = publication$DETALHAMENTO$NOME_DO_ORIENTADO,
+         'ORIENTACAO_EM_ANDAMENTO_ESPECIALIZACAO' = publication$DETALHAMENTO$NOME_DO_ORIENTADO
+  )
 }
 
 
 BuildObject <- function (publicacoes, publicacoesUnicas, levenshtein, tipo) {
- 
+
 		publications <- list()
-  	
+
 
 		for (pub in publicacoesUnicas) {
-		
+
 			lista <- GetAuthorsEndogenous(publicacoes, pub, levenshtein, tipo)
 			names <- NULL
-			if(tipo != 'ORIENTACAO_CONCLUIDA_MESTRADO' || 
+			if(tipo != 'ORIENTACAO_CONCLUIDA_MESTRADO' ||
                            tipo != 'OUTRAS_ORIENTACOES_CONCLUIDAS' ||
                            tipo != 'ORIENTACAO_CONCLUIDA_DOUTORADO' ||
                            tipo != 'ORIENTACAO_EM_ANDAMENTO_MESTRADO'||
 		  	   tipo !='ORIENTACAO_CONCLUIDA_POS_DOUTORADO' ||
-			   tipo !='ORIENTACAO_EM_ANDAMENTO_DOUTORADO' || 
-			   tipo != 'ORIENTACAO_EM_ANDAMENTO_DE_POS_DOUTORADO' || 
+			   tipo !='ORIENTACAO_EM_ANDAMENTO_DOUTORADO' ||
+			   tipo != 'ORIENTACAO_EM_ANDAMENTO_DE_POS_DOUTORADO' ||
 			   tipo != 'ORIENTACAO_EM_ANDAMENTO_GRADUACAO' ||
 			   tipo != 'ORIENTACAO_EM_ANDAMENTO_INICIACAO_CIENTIFICA'){
 				names<-GetNameCitation(pub)
@@ -223,46 +162,60 @@ BuildObject <- function (publicacoes, publicacoesUnicas, levenshtein, tipo) {
 			novaPublicacao <- CreateObject(pub,names, lista[[1]], lista[[2]], tipo)
 			publications <- c(publications, list(novaPublicacao))
 		 }
-	
-     
 
-		publications  
+
+
+		publications
 
 }
 
 
-GetAuthorsEndogenous<-function(publicacoes, publicacao, levenshtein, tipo){
-	
+GetAuthorsEndogenous <- function(publicacoes, publicacao, levenshtein, tipo) {
 
- 	ids <- list()
-	orientadores <- list()
-	
-	for (pubA in publicacoes) {
-	     if(IsSimilar(publicacao,pubA,levenshtein,tipo)){
-	       ids <- c(ids, list(pubA$IDLATTES))
-	       orientadores <- c(orientadores, list(pubA$NOME_COMPLETO))
-	     }
-	}
+  pubs_idlattes <- lapply(publicacoes, function(x) x[['IDLATTES']])
+  pubs_titles <- lapply(publicacoes, get_title_or_advisee, type = tipo)
+  orientadores <- lapply(publicacoes, function(x) x[['NOME_COMPLETO']])
 
-	listas <- list()
-	listas <- c(listas, list(ids))
-        listas <- c(listas, list(orientadores))
+  if (tipo == "ORIENTACAO_CONCLUIDA_MESTRADO" ||
+      tipo == "ORIENTACAO_CONCLUIDA_DOUTORADO" ||
+      tipo == "OUTRAS_ORIENTACOES_CONCLUIDAS" ||
+      tipo == "ORIENTACAO_CONCLUIDA_POS_DOUTORADO" ||
+      tipo == 'ORIENTACAO_EM_ANDAMENTO_MESTRADO'||
+      tipo == 'ORIENTACAO_EM_ANDAMENTO_DOUTORADO'||
+      tipo == 'ORIENTACAO_EM_ANDAMENTO_DE_POS_DOUTORADO'||
+      tipo == 'ORIENTACAO_EM_ANDAMENTO_INICIACAO_CIENTIFICA'||
+      tipo == 'ORIENTACAO_EM_ANDAMENTO_GRADUACAO'||
+      tipo == 'ORIENTACAO_EM_ANDAMENTO_ESPECIALIZACAO') {
 
-        listas
+    codigos_cursos <- lapply(publicacoes, function(x) x[['DETALHAMENTO']][['CODIGO_CURSO']])
+    matches <- (publicacao[['DETALHAMENTO']][['CODIGO_CURSO']] == codigos_cursos) &
+      (stringdist::stringdist(toupper(get_title_or_advisee(publicacao, tipo)),
+                              toupper(pubs_titles), method = 'lv') < levenshtein)
+
+  } else  {
+    matches <- stringdist::stringdist(toupper(get_title_or_advisee(publicacao, tipo)),
+                                      toupper(pubs_titles), method = 'lv') < levenshtein
+  }
+
+  listas <- list()
+  listas <- c(listas, list(pubs_idlattes[matches]))
+  listas <- c(listas, list(orientadores[matches]))
+
+  return(listas)
 
 }
 
 
 GetNameCitation<-function(publicacao){
-	
+
 
  	names<-list()
 
-	
+
 	for(item in publicacao$AUTORES){
 		names<-c(names, list(item$NOME_PARA_CITACAO))
 	}
-	
+
 
         names
 
@@ -279,7 +232,7 @@ CreateObject <- function(pubB, nomesDeCitacao, endogenos, orientadores ,tipo ){
 	  pub<-new.env(parent=emptyenv())
 
 	if(tipo =='PERIODICO'){
-	
+
 		  pub$TITULO_DO_ARTIGO <- pubB$DADOS_BASICOS_DO_ARTIGO$TITULO_DO_ARTIGO
 		  pub$ANO_DO_ARTIGO <- pubB$DADOS_BASICOS_DO_ARTIGO$ANO_DO_ARTIGO
 		  pub$TITULO_DO_PERIODICO_OU_REVISTA<- pubB$DETALHAMENTO_DO_ARTIGO$TITULO_DO_PERIODICO_OU_REVISTA
@@ -293,7 +246,7 @@ CreateObject <- function(pubB, nomesDeCitacao, endogenos, orientadores ,tipo ){
 		  pub$authorsEndogenous <- y
 
 	}else if ( tipo == 'EVENTO'){
-	
+
 		  pub$ANO_DO_TRABALHO  <- pubB$DADOS_BASICOS_DO_TRABALHO$ANO_DO_TRABALHO
 		  pub$DOI  <- pubB$DADOS_BASICOS_DO_TRABALHO$DOI
 		  pub$NATUREZA  <- pubB$DADOS_BASICOS_DO_TRABALHO$NATUREZA
@@ -310,7 +263,7 @@ CreateObject <- function(pubB, nomesDeCitacao, endogenos, orientadores ,tipo ){
                   pub$PAGINA_FINAL <- pubB$DETALHAMENTO_DO_TRABALHO$PAGINA_FINAL
 		  pub$authorsEndogenous <- y
 
-        
+
         }else if (tipo == 'LIVRO'){
 
 		  pub$ANO  <- pubB$DADOS_BASICOS_DO_LIVRO$ANO
@@ -336,7 +289,7 @@ CreateObject <- function(pubB, nomesDeCitacao, endogenos, orientadores ,tipo ){
 		  pub$DOI  <- pubB$DADOS_BASICOS_DE_OUTRA_PRODUCAO$DOI
 		  pub$NATUREZA  <- pubB$DADOS_BASICOS_DE_OUTRA_PRODUCAO$NATUREZA
 		  pub$PAIS_DE_PUBLICACAO   <- pubB$DADOS_BASICOS_DE_OUTRA_PRODUCAO$PAIS_DE_PUBLICACAO
-		  
+
 		  pub$TITULO  <- pubB$DADOS_BASICOS_DE_OUTRA_PRODUCAO$TITULO
 
 
@@ -396,7 +349,7 @@ CreateObject <- function(pubB, nomesDeCitacao, endogenos, orientadores ,tipo ){
 		  pub$TITULO_DO_JORNAL_OU_REVISTA<- pubB$DETALHAMENTO_DO_TEXTO$TITULO_DO_JORNAL_OU_REVISTA
 		  pub$DATA_DE_PUBLICACAO <- pubB$DETALHAMENTO_DO_TEXTO$DATA_DE_PUBLICACAO
 		  pub$ISSN <- pubB$DETALHAMENTO_DO_TEXTO$ISSN
-          
+
 		  pub$authors <- x
 		  pub$PAGINA_INICIAL <- pubB$DETALHAMENTO_DO_TEXTO$PAGINA_INICIAL
 		  pub$PAGINA_FINAL <-pubB$DETALHAMENTO_DO_TEXTO$PAGINA_FINAL
@@ -406,14 +359,14 @@ CreateObject <- function(pubB, nomesDeCitacao, endogenos, orientadores ,tipo ){
 	} else if(tipo == 'ORIENTACAO_EM_ANDAMENTO_MESTRADO' ||
                   tipo == 'ORIENTACAO_EM_ANDAMENTO_DOUTORADO' ||
 		  tipo == 'ORIENTACAO_EM_ANDAMENTO_DE_POS_DOUTORADO'||
-		  tipo == 'ORIENTACAO_EM_ANDAMENTO_GRADUACAO' || 
+		  tipo == 'ORIENTACAO_EM_ANDAMENTO_GRADUACAO' ||
 		  tipo == 'ORIENTACAO_EM_ANDAMENTO_INICIACAO_CIENTIFICA'||
 		  tipo == 'ORIENTACAO_CONCLUIDA_MESTRADO' ||
 		  tipo == 'ORIENTACAO_CONCLUIDA_DOUTORADO' ||
 		  tipo == 'OUTRAS_ORIENTACOES_CONCLUIDAS' ||
 		  tipo == 'ORIENTACAO_CONCLUIDA_POS_DOUTORADO'){
 
-                
+
 
 		pub$NOME_DO_ORIENTADO <-  pubB$DETALHAMENTO$NOME_DO_ORIENTADO
 		pub$NOME_INSTITUICAO <- pubB$DETALHAMENTO$NOME_INSTITUICAO
@@ -425,7 +378,7 @@ CreateObject <- function(pubB, nomesDeCitacao, endogenos, orientadores ,tipo ){
 		pub$CODIGO_CURSO  <- pubB$DETALHAMENTO$CODIGO_CURSO
  		pub$TIPO_DE_ORIENTACAO  <- pubB$DETALHAMENTO$TIPO_DE_ORIENTACAO
 		pub$CODIGO_INSTITUICAO  <- pubB$DETALHAMENTO$CODIGO_INSTITUICAO
-	
+
 		pub$ANO  <- pubB$DADOS_BASICOS$ANO
  		pub$NATUREZA  <- pubB$DADOS_BASICOS$NATUREZA
 		pub$TITULO_DO_TRABALHO  <- pubB$DADOS_BASICOS$TITULO_DO_TRABALHO
@@ -436,7 +389,7 @@ CreateObject <- function(pubB, nomesDeCitacao, endogenos, orientadores ,tipo ){
         pub$orientadores <-orientadores
 
 	}
- 
+
   pub
 }
 
